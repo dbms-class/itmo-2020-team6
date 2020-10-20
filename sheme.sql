@@ -3,7 +3,7 @@
 -- Волонтёры(FK(идентификатор карточки), контактный телефон)  CHECK (card_id > 1e6)
 CREATE TABLE Volunteer(
   card_id INT PRIMARY KEY, 
-  phone TEXT UNIUQE,
+  phone TEXT UNIQUE,
   CHECK (card_id > 1e6)
 );
 
@@ -14,7 +14,7 @@ CREATE TABLE Sportsman(
   height INT, 
   age INT, 
   card_id INT PRIMARY KEY,
-  volunteer_id INT FOREIGN KEY REFERENCES Volunteer(card_id),
+  volunteer_id INT REFERENCES Volunteer(card_id),
   CHECK (card_id <= 1e6)
 );
 
@@ -24,19 +24,11 @@ CREATE TABLE Leader(
   phone TEXT PRIMARY KEY
 );
 
--- Делегация(PK(страна), FK(контактный телефон руководителя), FK(id объекта))
-CREATE TABLE DELEGATION(
-  country TEXT PRIMARY KEY,
-  leader_phone TEXT FOREIGN KEY REFERENCES Leader(leader_phone),
-  building_id INT FOREIGN KEY REFERENCES Building(building_id)
-);
-
--- Объекты(PK(id), FK(id адреса), предназначение, собственное имя)
-CREATE TABLE Building(
-  id SERIAL PRIMARY KEY, 
-  address_id INT FOREIGN KEY REFERENCES Address(id), 
-  purpose_id INT FOREIGN KEY REFERENCES Purpose(id),
-  name TEXT
+-- Адрес(PK(id), улица, номер дома)
+CREATE TABLE Address(
+  id SERIAL PRIMARY KEY,
+  street TEXT,
+  house INT
 );
 
 -- Предназначения(PK(id), предназначение)
@@ -45,11 +37,19 @@ CREATE TABLE Purpose(
   purpose TEXT UNIQUE
 );
 
--- Адрес(PK(id), улица, номер дома)
-CREATE TABLE Address(
-  id SERIAL PRIMARY KEY,
-  street TEXT,
-  house INT
+-- Объекты(PK(id), FK(id адреса), предназначение, собственное имя)
+CREATE TABLE Building(
+  id SERIAL PRIMARY KEY, 
+  address_id INT REFERENCES Address(id), 
+  purpose_id INT REFERENCES Purpose(id),
+  name TEXT
+);
+
+-- Делегация(PK(страна), FK(контактный телефон руководителя), FK(id объекта))
+CREATE TABLE DELEGATION(
+  country TEXT PRIMARY KEY,
+  leader_phone TEXT REFERENCES Leader(phone),
+  building_id INT REFERENCES Building(id)
 );
 
 -- Виды спорта(PK(id), название спорта)
@@ -59,31 +59,20 @@ CREATE TABLE Sports(
 );
 
 -- Соревнования(PK(id), вид спорта, дата-время, FK(id объекта))
-CREATE TABLE Competitions (
+CREATE TABLE Competition (
   id INT PRIMARY KEY,
-  sport_id INT FOREIGN KEY REFERENCES Sports(id),
-  competition_date DATETIME,
-  building_id FOREIGN KEY REFERENCES Building(id),
+  sport_id INT REFERENCES Sports(id),
+  competition_date TIMESTAMP,
+  building_id INT REFERENCES Building(id),
   UNIQUE (competition_date, building_id)
 );
 
 -- Участники(PK(FK(id спортсмена), FK(id соревнования)), занятое место)
 CREATE TABLE Participant(
-  sportsman_id INT FOREIGN KEY REFERENCES Sportsman(card_id),
-  competition_id INT FOREIGN KEY REFERENCES Competitions(id),
+  sportsman_id INT REFERENCES Sportsman(card_id),
+  competition_id INT REFERENCES Competition(id),
   place TEXT NOT NULL,
   PRIMARY KEY (sportsman_id, competition_id)
-);
-
--- Задания(PK(id), FK(id карточнки волонётра), дата-время, описание)
-CREATE TABLE Task (
-  id INT PRIMARY KEY,
-  volunteer_id INT FOREIGN KEY REFERENCES Volunteer(id),
-  task_date DATETIME,
-  transport_id TEXT NULL,
-  task_description TEXT,
-  FOREIGN KEY (transport_id) REFERENCES Transport(reg_n),
-  UNIQUE (task_date, transport_id)
 );
 
 -- Транспорт(PK(регистрационный номер), вместимость)
@@ -93,8 +82,18 @@ CREATE TABLE Transport(
   CHECK (capacity > 0)
 );
 
+-- Задания(PK(id), FK(id карточнки волонётра), дата-время, описание)
+CREATE TABLE Task (
+  id INT PRIMARY KEY,
+  volunteer_id INT REFERENCES Volunteer(card_id),
+  task_date TIMESTAMP,
+  transport_id TEXT NULL REFERENCES Transport(reg_n),
+  task_description TEXT,
+  UNIQUE (task_date, transport_id)
+);
+
 -- -- Задание_транспорт(PK(FK(регистрационный номер), FK(id задания))) ?? время 
 -- CREATE TABLE TaskTransport(
---   reg_number TEXT FOREIGN KEY REFERENCES Transport(reg_number),
---   task_id INT FOREIGN KEY REFERENCES Task(id)
+--   reg_number TEXT REFERENCES Transport(reg_number),
+--   task_id INT REFERENCES Task(id)
 -- )
