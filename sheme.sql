@@ -77,6 +77,13 @@ CREATE TABLE Sportsman(
   delegation_id TEXT REFERENCES Delegation(country)
 );
 
+-- Ассоциация спортсменов с видами спорта
+-- CREATE TABLE Sportsman_Sport(
+--   sport_id INT REFERENCES Sports(id),
+--   sportsman_id INT REFERENCES Sportsman(card_id),
+--   PRIMARY KEY (sport_id, sportsman_id)
+-- );
+
 -- Соревнования(PK(id), вид спорта, дата-время, FK(id объекта))
 -- Соревнование по какому-либо виду спорта, проводимое в рамках олимпийских игр
 -- В одно время в одном здании может проводиться только одно соревнование
