@@ -24,7 +24,7 @@ CREATE TABLE Address(
 -- Предназначения(PK(id), предназначение)
 -- Предназначение конкретного объекта на территории деревни
 CREATE TABLE Purpose(
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   purpose TEXT NOT NULL UNIQUE
 );
 
@@ -55,8 +55,8 @@ CREATE TABLE Building_Sport(
 -- У каждой делегации есть один штаб в каком-то здании
 CREATE TABLE Delegation(
   country TEXT PRIMARY KEY,
-  leader_phone TEXT REFERENCES Leader(phone),
-  building_id INT REFERENCES Building(id)
+  leader_phone TEXT NOT NULL REFERENCES Leader(phone),
+  building_id INT NOT NULL REFERENCES Building(id)
 );
 
 CREATE TYPE SEX as ENUM ('male', 'female', 'not stated');
@@ -72,9 +72,9 @@ CREATE TABLE Sportsman(
   weight INT NOT NULL CHECK (weight > 0),
   age INT NOT NULL CHECK (age > 0), 
   card_id INT PRIMARY KEY CHECK (card_id <= 1e6),
-  volunteer_id INT REFERENCES Volunteer(card_id),
-  building_id INT REFERENCES Building(id),
-  delegation_id TEXT REFERENCES Delegation(country)
+  volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
+  building_id INT NOT NULL REFERENCES Building(id),
+  delegation_id TEXT NOT NULL REFERENCES Delegation(country)
 );
 
 -- Ассоциация спортсменов с видами спорта
