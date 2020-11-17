@@ -90,7 +90,7 @@ CREATE TABLE Sportsman(
 CREATE TABLE Competition (
   id INT PRIMARY KEY,
   sport_id INT NOT NULL,
-  competition_date TIMESTAMP NOT NULL,
+  competition_date TIMESTAMP(0) NOT NULL,
   building_id INT NOT NULL,
   FOREIGN KEY (sport_id, building_id) REFERENCES Building_Sport(sport_id, building_id)
 );
