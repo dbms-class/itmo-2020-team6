@@ -1,11 +1,12 @@
 # encoding: UTF-8
 
-## Веб сервер
+# Веб сервер
 import cherrypy
 
 from connect import parse_cmd_line
 from connect import create_connection
 from static import index
+
 
 @cherrypy.expose
 class App(object):
@@ -18,39 +19,42 @@ class App(object):
 
     @cherrypy.expose
     def index(self):
-      return index()
+        return index()
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def planets(self, planet_id = None):
+    def register(self, sportsman, country, volunteer_id):
         with create_connection(self.args) as db:
             cur = db.cursor()
-            if planet_id is None:
-              cur.execute("SELECT id, name FROM Planet P")
-            else:
-              cur.execute("SELECT id, name FROM Planet WHERE id= %s", planet_id)
+            cur.execute(...)
             result = []
-            planets = cur.fetchall()
-            for p in planets:
-                result.append({"id": p[0], "name": p[1]})
+            sportsman = cur.fetchall()
+            ...
             return result
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def commanders(self):
+    def countries(self):
         with create_connection(self.args) as db:
             cur = db.cursor()
-            cur.execute("SELECT id, name FROM Commander")
-            result = []
-            commanders = cur.fetchall()
-            for c in commanders:
-                result.append({"id": c[0], "name": c[1]})
-            return result
+            cur.execute("SELECT country FROM Delegation")
+            countries = cur.fetchall()
+            return [{"id": i + 1, "name": c[0]}
+                    for i, c in enumerate(countries)]
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def volunteers(self):
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            cur.execute("SELECT card_id, name FROM Volunteer")
+            volunteers = cur.fetchall()
+            return [{"id": v[0], "name": v[1]}
+                    for v in volunteers]
 
 
 cherrypy.config.update({
-  'server.socket_host': '0.0.0.0',
-  'server.socket_port': 8080,
+    'server.socket_host': '0.0.0.0',
+    'server.socket_port': 8080,
 })
 cherrypy.quickstart(App(parse_cmd_line()))
-

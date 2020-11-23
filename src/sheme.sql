@@ -3,6 +3,7 @@
 -- Волонтёр однозначно определяется номером телефона
 CREATE TABLE Volunteer(
   card_id INT PRIMARY KEY CHECK (card_id > 1e6), 
+  name TEXT NOT NULL,
   phone TEXT NOT NULL UNIQUE
 );
 
