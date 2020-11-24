@@ -54,6 +54,24 @@ class App(object):
             return [{"id": v[0], "name": v[1]}
                     for v in volunteers]
 
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def volunteer_load(self, volunteer_id=None, sportsman_count=0, total_task_count=0):
+        with create_connection(self.args) as db:
+            cur = db.cursor()
+            cur.execute("SELECT V.card_id, V.name, COALESCE(S.sportsman_count, 0) "
+                        "FROM Volunteer V LEFT JOIN (SELECT volunteer_id, COUNT(*) sportsman_count FROM Sportsman GROUP BY volunteer_id) S "
+                        "ON V.card_id = S.volunteer_id"
+                        "WHERE S.sportsman_count >= {sportsman_count};")
+            volunteers = cur.fetchall()
+            return [{"volunteer_id": v[0],
+                     "volunteer_name": v[1],
+                     "sportsman_count": v[2],
+                     "total_task_count": v[3],
+                     "next_task_id": v[4],
+                     "next_task_time": v[5]}
+                    for v in volunteers]
+
 
 cherrypy.config.update({
     'server.socket_host': '0.0.0.0',
