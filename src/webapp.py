@@ -26,11 +26,13 @@ class App(object):
     def register(self, sportsman, country, volunteer_id):
         with create_connection(self.args) as db:
             cur = db.cursor()
-            cur.execute(...)
-            result = []
-            sportsman = cur.fetchall()
-            ...
-            return result
+            if sportsman.isnumeric():
+                cur.execute(f"UPDATE Sportsman SET delegation_id = '{country}', "
+                            f"volunteer_id = {volunteer_id} "
+                            f"WHERE card_id = {sportsman};")
+            else:
+                cur.execute(f"INSERT INTO Sportsman (name, volunteer_id, delegation_id) "
+                            f"VALUES ('{sportsman}', {volunteer_id}, '{country}');")
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

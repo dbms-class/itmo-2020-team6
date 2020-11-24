@@ -2,10 +2,12 @@
 -- Id карточек волонтеров начинаются с 1e6 + 1, чтобы не было коллизий с id карточек спортсменов
 -- Волонтёр однозначно определяется номером телефона
 CREATE TABLE Volunteer(
-  card_id INT PRIMARY KEY CHECK (card_id > 1e6), 
+  card_id SERIAL PRIMARY KEY CHECK (card_id >= 1e6), 
   name TEXT NOT NULL,
   phone TEXT NOT NULL UNIQUE
 );
+
+ALTER SEQUENCE Volunteer_card_id_seq RESTART WITH 1000000;
 
 -- Руководитель(имя, PK(контактный телефон))
 -- Руководитель однозначно определяется по номеру телефона.
@@ -69,12 +71,12 @@ CREATE TYPE SEX as ENUM ('male', 'female', 'not stated');
 CREATE TABLE Sportsman(
   name TEXT NOT NULL, 
   sex SEX NOT NULL DEFAULT 'not stated', 
-  height INT NOT NULL CHECK (height > 0), 
-  weight INT NOT NULL CHECK (weight > 0),
-  age INT NOT NULL CHECK (age > 0), 
-  card_id INT PRIMARY KEY CHECK (card_id <= 1e6),
+  height INT CHECK (height > 0), 
+  weight INT CHECK (weight > 0),
+  age INT CHECK (age > 0), 
+  card_id SERIAL PRIMARY KEY CHECK (card_id < 1e6),
   volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
-  building_id INT NOT NULL REFERENCES Building(id),
+  building_id INT REFERENCES Building(id),
   delegation_id TEXT NOT NULL REFERENCES Delegation(country)
 );
 
