@@ -42,7 +42,7 @@ CREATE TABLE Building(
 
 -- Виды спорта(PK(id), название спорта)
 CREATE TABLE Sports(
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL UNIQUE
 );
 
@@ -91,7 +91,7 @@ CREATE TABLE Sportsman(
 -- Соревнование по какому-либо виду спорта, проводимое в рамках олимпийских игр
 -- В одно время в одном здании может проводиться только одно соревнование
 CREATE TABLE Competition (
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   sport_id INT NOT NULL,
   competition_date TIMESTAMP(0) NOT NULL,
   building_id INT NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE Transport(
 -- К заданию может быть прикреплено транспортное средство
 -- Нельзя, чтобы в одно время к одному транспорту относилось несколько заданий 
 CREATE TABLE Task (
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
   task_date TIMESTAMP NOT NULL,
   transport_id TEXT NULL REFERENCES Transport(reg_n),
