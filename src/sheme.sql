@@ -126,5 +126,6 @@ CREATE TABLE Task (
   transport_id TEXT NULL REFERENCES Transport(reg_n),
   task_description TEXT,
   UNIQUE (task_date, transport_id)
+  UNIQUE (task_date, volunteer_id)
 );
  
