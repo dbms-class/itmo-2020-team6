@@ -85,32 +85,22 @@ class App(object):
                 ) S
                 FULL JOIN
                 (
-                    WITH T3 AS
+                    SELECT  T2.volunteer_id      id,
+                            T2.total_task_count  total_task_count,
+                            T2.next_task_time    next_task_time,
+                            T1.id                next_task_id
+                    FROM Task T1 
+                    JOIN 
                     (
-                        SELECT  T2.volunteer_id      id,
-                                T2.total_task_count  total_task_count,
-                                T2.next_task_time    next_task_time,
-                                T1.id                next_task_id
-                        FROM Task T1 
-                        JOIN 
-                        (
-                            SELECT  volunteer_id, 
-                                    COUNT(*)        total_task_count, 
-                                    MIN(task_date)  next_task_time
-                            FROM Task 
-                            WHERE task_date >= now()
-                            GROUP BY volunteer_id 
-                        ) T2
-                        ON  T1.volunteer_id = T2.volunteer_id AND
-                            T2.next_task_time = T1.task_date
-                    )
-                    SELECT * 
-                    FROM T3
-                    WHERE T3.next_task_id IN (
-                        SELECT MIN(next_task_id)
-                        FROM T3
-                        GROUP BY id
-                    )
+                        SELECT  volunteer_id, 
+                                COUNT(*)        total_task_count, 
+                                MIN(task_date)  next_task_time
+                        FROM Task 
+                        WHERE task_date >= now()
+                        GROUP BY volunteer_id 
+                    ) T2
+                    ON  T1.volunteer_id = T2.volunteer_id AND
+                        T2.next_task_time = T1.task_date
                 ) T
                 ON S.id = T.id
                 WHERE   COALESCE(S.sportsman_count, 0) >= {sportsman_count} AND

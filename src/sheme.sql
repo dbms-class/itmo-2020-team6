@@ -119,13 +119,14 @@ CREATE TABLE Transport(
 -- За каждым заданием закреплён один волонтёр, у волонтёра может быть несколько заданий 
 -- К заданию может быть прикреплено транспортное средство
 -- Нельзя, чтобы в одно время к одному транспорту относилось несколько заданий 
+-- Нельзя, чтобы в одно время к одному волонтёру относилось несколько заданий 
 CREATE TABLE Task (
   id SERIAL PRIMARY KEY,
   volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
   task_date TIMESTAMP NOT NULL,
   transport_id TEXT NULL REFERENCES Transport(reg_n),
   task_description TEXT,
-  UNIQUE (task_date, transport_id)
+  UNIQUE (task_date, transport_id),
   UNIQUE (task_date, volunteer_id)
 );
  
