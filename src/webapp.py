@@ -60,7 +60,7 @@ class App(object):
         with create_connection(self.args) as db:
             cur = db.cursor()
 
-            volunteer_filter = f"WHERE V.card_id = {volunteer_id}" if volunteer_id is not None else ""
+            volunteer_filter = f"V.card_id = {volunteer_id}" if volunteer_id is not None else ""
 
             query = f"""
             SELECT  V.card_id,
@@ -103,11 +103,11 @@ class App(object):
                         T2.next_task_time = T1.task_date
                 ) T
                 ON S.id = T.id
-                WHERE   COALESCE(S.sportsman_count, 0) >= {sportsman_count} AND
-                        COALESCE(T.total_task_count, 0) >= {total_task_count}
             ) R
             ON V.card_id = R.id
-            {volunteer_filter}
+            WHERE   COALESCE(R.sportsman_count, 0) >= {sportsman_count} AND
+                    COALESCE(R.total_task_count, 0) >= {total_task_count}
+                    {volunteer_filter}
             ;
             """
 
