@@ -107,16 +107,16 @@ insert into Delegation(country, leader_phone, building_id) VALUES
 insert into Sportsman
     (name,       sex,          height, weight, age, card_id, volunteer_id, building_id, delegation_id) VALUES
     ('Ice Kate', 'not stated', 194,    39,     17,  1,       1000007,
-    1 + ((select Count(*) from Building) - 1) * random() :: INT,
+    (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'Neverland'),
     ('Zhe Sloboda','male',     185,    81,     22,  2,       1000004,
-    1 + ((select Count(*) from Building) - 1) * random() :: INT,
+    (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'Lamdaland'),
     ('Serega Sokol','male',    183,    78,     22,  3,       1000001,
-    1 + ((select Count(*) from Building) - 1) * random() :: INT,
+    (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'China'),
     ('Ars Tereza', 'male',     178,    65,     22,  4,       1000008,
-    1 + ((select Count(*) from Building) - 1) * random() :: INT,
+    (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'Camelot');
 
 
@@ -135,3 +135,18 @@ select 1000001 + ((((select Count(*) from Volunteer) - 1) * random()) :: INT),
        (unnest(ARRAY['666', '228', '018', '621', '432', '123'])),
        (unnest(ARRAY['побрить подмыхи', 'сделать массаж', 'сгонять за пивом', 'принести хавчик', 'погладить кота', 'перевезти']))
        from generate_series(1, 50);
+
+
+insert into Competition (sport_id, competition_date, building_id)
+select
+    sport_id,
+    ('5051-01-01'::DATE + random()* 100 * 60 * INTERVAL '1 MINUTE')::TIMESTAMP,
+    building_id
+    from Building_Sport;
+
+insert into Participant(sportsman_id, competition_id, place)
+select distinct
+    unnest(ARRAY[1, 2, 3, 4]),
+    (1 + ((select Count(*) from Competition) - 1) * random()) :: INT,
+    unnest(ARRAY[1, 2, 3, 4])
+    from generate_series(1, 15);
