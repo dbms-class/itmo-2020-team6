@@ -50,7 +50,8 @@ INSERT INTO Leader(name, phone) VALUES
     ('Misha', '1427'),
     ('Merlin', '1556'),
     ('Artur', '1426');    
-    
+
+
 INSERT INTO Address(id, street, house) VALUES
     (1, 'Вёсельная', 93),
     (2, 'Карташихина', 13),
@@ -117,3 +118,20 @@ insert into Sportsman
     ('Ars Tereza', 'male',     178,    65,     22,  4,       1000008,
     1 + ((select Count(*) from Building) - 1) * random() :: INT,
     'Camelot');
+
+
+insert into Transport(reg_n, capacity) VALUES
+   ('666', 34),
+   ('228', 4),
+   ('018', 2),
+   ('621', 1),
+   ('432', 10),
+   ('123', 5);
+
+
+insert into Task(volunteer_id, task_date, transport_id, task_description)
+select 1000001 + ((((select Count(*) from Volunteer) - 1) * random()) :: INT),
+       ('5051-01-01'::DATE + random()* 10 * 60 * INTERVAL '1 MINUTE')::TIMESTAMP,
+       (unnest(ARRAY['666', '228', '018', '621', '432', '123'])),
+       (unnest(ARRAY['побрить подмыхи', 'сделать массаж', 'сгонять за пивом', 'принести хавчик', 'погладить кота', 'перевезти']))
+       from generate_series(1, 50);
