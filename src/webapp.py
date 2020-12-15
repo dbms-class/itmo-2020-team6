@@ -103,7 +103,6 @@ class App(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def volunteer_unassigned(self, volunteer_id, task_ids):
-        # TODO
         # 1. convert tuples for sql
         # 2. *
         # 3. volunteer's name
@@ -113,17 +112,19 @@ class App(object):
 
             tasks = tuple(map(int, task_ids.split(',')))
 
-            query_volunteers = f'''WITH (SELECT delegation_id
-                                        FROM Sportsman
-                                        WHERE volunteer_id = {volunteer_id}) as PD
-                                SELECT DISTINCT volunteer_id
-                                FROM Sportsman
-                                WHERE delegation_id IN PD;'''
+            query_volunteers = f'''
+            WITH PD as (SELECT delegation_id
+                        FROM Sportsman
+                        WHERE volunteer_id = {volunteer_id})
+                SELECT DISTINCT volunteer_id
+                FROM Sportsman
+                WHERE delegation_id IN (SELECT * FROM PD) AND volunteer_id != {volunteer_id};'''
 
             cur.execute(query_volunteers)
             possible_volunteers = cur.fetchall()
+            possible_volunteers = [str(item) for sublist in possible_volunteers for item in sublist]
 
-            query_sorted_tasks = f'''SELECT id, task_date
+            query_sorted_tasks = f'''SELECT id, (task_date::TIMESTAMP(0))::TEXT
                                      FROM Task
                                      WHERE id IN {str(tasks)}
                                      ORDER BY task_date;'''
@@ -135,24 +136,25 @@ class App(object):
 
             for task_id, task_date in sorted_tasks:
                 query_possible_changers = f'''
-                SELECT volunteer_id
-                FROM Volunteers
-                WHERE volunteer_id IN {str(possible_volunteers)}
+                SELECT card_id
+                FROM Volunteer
+                WHERE card_id IN ({','.join(possible_volunteers)})
                     AND NOT EXISTS (SELECT task_date
                                     FROM Task
-                                    WHERE task_date BETWEEN {task_date} - interval '1 hour'
-                                                        AND {task_date} + interval '1 hour'
-                                            AND Task.volunteer_id = Volunteers.volunteer_id);'''
+                                    WHERE task_date BETWEEN \'{task_date}\'::DATE - interval '1 hour'
+                                                        AND \'{task_date}\'::DATE + interval '1 hour'
+                                            AND Task.volunteer_id = Volunteer.card_id);'''
 
                 cur.execute(query_possible_changers)
                 possible_changers = cur.fetchall()
+                possible_changers = [str(item) for sublist in possible_changers for item in sublist]
 
                 query_sort_by_task_count = f'''
-                SELECT volunteer_id, COUNT(*) as cnt
-                FROM Task
-                WHERE vounteer_id IN {str(possible_changers)}
-                      AND task_date > {task_date}
-                GROUP BY volunteer_id
+                SELECT v.card_id, COUNT(*) as cnt
+                FROM Volunteer v LEFT JOIN Task t ON v.card_id = t.volunteer_id 
+                WHERE v.card_id IN ({','.join(possible_changers)})
+                      AND t.task_date > '{task_date}'::DATE OR t.task_date IS NULL
+                GROUP BY v.card_id
                 ORDER BY cnt;'''
 
                 cur.execute(query_sort_by_task_count)
@@ -168,7 +170,8 @@ class App(object):
 
                     cur.execute(query_update)
 
-                    volunteer_assigners.append({'task_id': task_id, 'new_volunteer_name': None, 'new_volnteer_id': assigner})
+                    volunteer_assigners.append(
+                        {'task_id': task_id, 'new_volunteer_name': None, 'new_volnteer_id': assigner})
 
         return volunteer_assigners
 
