@@ -73,8 +73,8 @@ class App(object):
             (
                 SELECT  V.card_id volunteer_id,
                         V.name volunteer_name,
-                        COUNT(S.card_id) sportsman_count,
-                        COUNT(T.id) total_task_count,
+                        COUNT(DISTINCT S.card_id) sportsman_count,
+                        COUNT(DISTINCT T.id) total_task_count,
                         MIN(T.task_date) next_task_time
                 FROM Volunteer V 
                 LEFT JOIN Sportsman S ON V.card_id = S.volunteer_id
