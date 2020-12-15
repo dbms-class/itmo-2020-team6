@@ -171,7 +171,7 @@ class App(object):
                     cur.execute(query_update)
 
                     volunteer_assigners.append(
-                        {'task_id': task_id, 'new_volunteer_name': None, 'new_volnteer_id': assigner})
+                        {'task_id': task_id, 'new_volunteer_name': None, 'new_volunteer_id': assigner})
 
         return volunteer_assigners
 
