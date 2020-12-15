@@ -60,53 +60,32 @@ class App(object):
         with create_connection(self.args) as db:
             cur = db.cursor()
 
-            volunteer_filter = f"V.card_id = {volunteer_id}" if volunteer_id is not None else ""
+            volunteer_filter = f"AND R.volunteer_id = {volunteer_id}" if volunteer_id is not None else ""
 
             query = f"""
-            SELECT  V.card_id,
-                    V.name,
-                    COALESCE(R.sportsman_count, 0),
-                    COALESCE(R.total_task_count, 0),
-                    R.next_task_id,
+            SELECT  R.volunteer_id,
+                    R.volunteer_name,
+                    R.sportsman_count,
+                    R.total_task_count,
+                    Task.id next_task_id,
                     R.next_task_time::TEXT
-            FROM Volunteer V LEFT JOIN
+            FROM
             (
-                SELECT  COALESCE(S.id, T.id)            id,
-                        COALESCE(S.sportsman_count, 0)  sportsman_count,
-                        COALESCE(T.total_task_count, 0) total_task_count,
-                        T.next_task_id                  next_task_id,
-                        T.next_task_time                next_task_time
-                FROM
-                (
-                    SELECT  volunteer_id    id,
-                            COUNT(*)        sportsman_count
-                    FROM Sportsman
-                    GROUP BY volunteer_id
-                ) S
-                FULL JOIN
-                (
-                    SELECT  T2.volunteer_id      id,
-                            T2.total_task_count  total_task_count,
-                            T2.next_task_time    next_task_time,
-                            T1.id                next_task_id
-                    FROM Task T1
-                    JOIN
-                    (
-                        SELECT  volunteer_id,
-                                COUNT(*)        total_task_count,
-                                MIN(task_date)  next_task_time
-                        FROM Task
-                        WHERE task_date >= now()
-                        GROUP BY volunteer_id
-                    ) T2
-                    ON  T1.volunteer_id = T2.volunteer_id AND
-                        T2.next_task_time = T1.task_date
-                ) T
-                ON S.id = T.id
+                SELECT  V.card_id volunteer_id,
+                        V.name volunteer_name,
+                        COUNT(S.card_id) sportsman_count,
+                        COUNT(T.id) total_task_count,
+                        MIN(T.task_date) next_task_time
+                FROM Volunteer V 
+                LEFT JOIN Sportsman S ON V.card_id = S.volunteer_id
+                LEFT JOIN Task T ON V.card_id = T.volunteer_id
+                WHERE T.task_date >= now()
+                GROUP BY V.card_id
             ) R
-            ON V.card_id = R.id
-            WHERE   COALESCE(R.sportsman_count, 0) >= {sportsman_count} AND
-                    COALESCE(R.total_task_count, 0) >= {total_task_count}
+            LEFT JOIN Task  ON R.volunteer_id = Task.volunteer_id 
+                            AND R.next_task_time = Task.task_date
+            WHERE   R.sportsman_count >= {sportsman_count} AND
+                    R.total_task_count >= {total_task_count}
                     {volunteer_filter}
             ;
             """
