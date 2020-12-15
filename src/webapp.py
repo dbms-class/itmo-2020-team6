@@ -68,7 +68,7 @@ class App(object):
                     R.sportsman_count,
                     R.total_task_count,
                     Task.id next_task_id,
-                    R.next_task_time::TEXT
+                    (R.next_task_time::TIMESTAMP(0))::TEXT
             FROM
             (
                 SELECT  V.card_id volunteer_id,
