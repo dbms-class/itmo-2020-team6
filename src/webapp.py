@@ -103,15 +103,15 @@ class App(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def volunteer_unassigned(self, volunteer_id, task_ids):
-        # 1. convert tuples for sql
-        # 2. *
-        # 3. volunteer's name
+        # TODO
+        # 3. *
 
         with create_connection(self.args) as db:
             cur = db.cursor()
 
-            tasks = tuple(map(int, task_ids.split(',')))
+            tasks = tuple(task_ids.split(','))
 
+            # Находим id волонтеров, которые прикреплены к спортсмену из тех же делегаций
             query_volunteers = f'''
             WITH PD as (SELECT delegation_id
                         FROM Sportsman
@@ -124,10 +124,12 @@ class App(object):
             possible_volunteers = cur.fetchall()
             possible_volunteers = [str(item) for sublist in possible_volunteers for item in sublist]
 
-            query_sorted_tasks = f'''SELECT id, (task_date::TIMESTAMP(0))::TEXT
-                                     FROM Task
-                                     WHERE id IN {str(tasks)}
-                                     ORDER BY task_date;'''
+            # Узнаем даты переданных заданий 
+            query_sorted_tasks = f'''
+            SELECT id, (task_date::TIMESTAMP(0))::TEXT
+            FROM Task
+            WHERE id IN ({','.join(tasks)})
+            ORDER BY task_date;'''
 
             cur.execute(query_sorted_tasks)
             sorted_tasks = cur.fetchall()
@@ -135,6 +137,7 @@ class App(object):
             volunteer_assigners = []
 
             for task_id, task_date in sorted_tasks:
+                # Достаем волонтеров, у которых нет задач в интервале +- час от текущего задания
                 query_possible_changers = f'''
                 SELECT card_id
                 FROM Volunteer
@@ -149,8 +152,9 @@ class App(object):
                 possible_changers = cur.fetchall()
                 possible_changers = [str(item) for sublist in possible_changers for item in sublist]
 
+                # Сортируем волонтеров по количеству заданий
                 query_sort_by_task_count = f'''
-                SELECT v.card_id, COUNT(*) as cnt
+                SELECT v.card_id, v.name, COUNT(*) as cnt
                 FROM Volunteer v LEFT JOIN Task t ON v.card_id = t.volunteer_id 
                 WHERE v.card_id IN ({','.join(possible_changers)})
                       AND t.task_date > '{task_date}'::DATE OR t.task_date IS NULL
@@ -161,17 +165,18 @@ class App(object):
                 possible_changers = cur.fetchall()
 
                 if possible_changers:
-                    assigner = possible_changers[0][0]
+                    assigner_id, assigner_name, _ = possible_changers[0]
 
+                    # Для задания обновляем значение в таблице на сменщика
                     query_update = f'''
                     UPDATE Task
-                    SET volunteer_id = {assigner}
+                    SET volunteer_id = {assigner_id}
                     WHERE id = {task_id};'''
 
                     cur.execute(query_update)
 
                     volunteer_assigners.append(
-                        {'task_id': task_id, 'new_volunteer_name': None, 'new_volunteer_id': assigner})
+                        {'task_id': task_id, 'new_volunteer_name': assigner_name, 'new_volunteer_id': assigner_id})
 
         return volunteer_assigners
 
