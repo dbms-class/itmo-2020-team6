@@ -103,13 +103,20 @@ class App(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def volunteer_unassigned(self, volunteer_id, task_ids):
-        # TODO
-        # 3. *
-
         with create_connection(self.args) as db:
             cur = db.cursor()
 
-            tasks = tuple(task_ids.split(','))
+            if task_ids == '*':
+                query_get_all_tasks = f'''
+                SELECT id
+                FROM Task
+                WHERE volunteer_id = {volunteer_id};'''
+
+                cur.execute(query_get_all_tasks)
+                tasks = cur.fetchall()
+                tasks = [str(item[0]) for item in tasks]
+            else:
+                tasks = task_ids.split(',')
 
             # Находим id волонтеров, которые прикреплены к спортсмену из тех же делегаций
             query_volunteers = f'''
@@ -123,6 +130,9 @@ class App(object):
             cur.execute(query_volunteers)
             possible_volunteers = cur.fetchall()
             possible_volunteers = [str(item) for sublist in possible_volunteers for item in sublist]
+
+            if not possible_volunteers:
+                return []
 
             # Узнаем даты переданных заданий 
             query_sorted_tasks = f'''
@@ -151,6 +161,10 @@ class App(object):
                 cur.execute(query_possible_changers)
                 possible_changers = cur.fetchall()
                 possible_changers = [str(item) for sublist in possible_changers for item in sublist]
+
+                # Если никого не нашли, то оставляем задачу у прогульщика
+                if not possible_changers:
+                    continue
 
                 # Сортируем волонтеров по количеству заданий
                 query_sort_by_task_count = f'''
