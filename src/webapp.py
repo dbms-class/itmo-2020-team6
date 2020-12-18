@@ -100,6 +100,10 @@ class App(object):
                      "next_task_time": v[5]}
                     for v in volunteers]
 
+    # Examples of usage:
+    # /volunteer_unassigned?volunteer_id=1000009;task_ids=*
+
+    # Чтобы не возвращалось пустого списка, посмотрите в таблицу, так как данные генерируются случайно
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def volunteer_unassigned(self, volunteer_id, task_ids):
@@ -161,10 +165,6 @@ class App(object):
                 cur.execute(query_possible_changers)
                 possible_changers = cur.fetchall()
                 possible_changers = [str(item) for sublist in possible_changers for item in sublist]
-
-                # Если никого не нашли, то оставляем задачу у прогульщика
-                if not possible_changers:
-                    continue
 
                 # Сортируем волонтеров по количеству заданий
                 query_sort_by_task_count = f'''

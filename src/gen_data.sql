@@ -115,7 +115,10 @@ insert into Sportsman
     ('Serega Sokol','male',    183,    78,     22,  3,       1000001,
     (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'China'),
-    ('Ars Tereza', 'male',     178,    65,     22,  4,       1000008,
+    ('Ars Tereza', 'male',     178,    65,     22,  4,       1000005,
+    (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
+    'Camelot'),
+    ('Dm Barash', 'not stated', 190,   80,     18,  5,       1000009,
     (1 + ((select Count(*) from Building) - 1) * random()) :: INT,
     'Camelot');
 
@@ -130,12 +133,18 @@ insert into Transport(reg_n, capacity) VALUES
 
 
 insert into Task(volunteer_id, task_date, transport_id, task_description)
-select 1000001 + ((((select Count(*) from Volunteer) - 1) * random()) :: INT),
+select 1000001 + ((((select Count(*) from Volunteer) - 2) * random()) :: INT),
        ('5051-01-01'::DATE + random()* 10 * 60 * INTERVAL '1 MINUTE')::TIMESTAMP,
        (unnest(ARRAY['666', '228', '018', '621', '432', '123'])),
        (unnest(ARRAY['побрить подмыхи', 'сделать массаж', 'сгонять за пивом', 'принести хавчик', 'погладить кота', 'перевезти']))
-       from generate_series(1, 50);
+       from generate_series(1, 10);
 
+insert into Task
+    (volunteer_id, task_date, transport_id, task_description) VALUES
+    (1000009,
+     ('2020-10-10'::DATE + random()* 10 * 60 * INTERVAL '1 MINUTE')::TIMESTAMP,
+     228,
+     'сварить кофе');
 
 insert into Competition (sport_id, competition_date, building_id)
 select
