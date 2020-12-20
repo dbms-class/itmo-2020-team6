@@ -22,13 +22,13 @@ def parse_cmd_line():
     parser.add_argument('--pg-password', help='PostgreSQL password', default='')
     parser.add_argument('--pg-database', help='PostgreSQL database', default='')
     parser.add_argument('--sqlite-file', help='SQLite3 database file. Type :memory: to use in-memory SQLite3 database',
-                        default='sqlite.db')
+                        default=None)
     return parser.parse_args()
 
 
 # Создаёт подключение к постгресу в соответствии с аргументами командной строки.
 def create_connection_pg(args):
-    return pg_driver.connect(user=args.pg_user, password=args.pg_password, host=args.pg_host, port=args.pg_port)
+    return pg_driver.connect(user=args.pg_user, password=args.pg_password, host=args.pg_host, port=args.pg_port, dbname=args.pg_database)
 
 
 # Создаёт подключение к SQLite в соответствии с аргументами командной строки.

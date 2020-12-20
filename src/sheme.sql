@@ -2,9 +2,12 @@
 -- Id карточек волонтеров начинаются с 1e6 + 1, чтобы не было коллизий с id карточек спортсменов
 -- Волонтёр однозначно определяется номером телефона
 CREATE TABLE Volunteer(
-  card_id INT PRIMARY KEY CHECK (card_id > 1e6), 
+  card_id SERIAL PRIMARY KEY CHECK (card_id >= 1e6), 
+  name TEXT NOT NULL,
   phone TEXT NOT NULL UNIQUE
 );
+
+ALTER SEQUENCE Volunteer_card_id_seq RESTART WITH 1000000;
 
 -- Руководитель(имя, PK(контактный телефон))
 -- Руководитель однозначно определяется по номеру телефона.
@@ -39,7 +42,7 @@ CREATE TABLE Building(
 
 -- Виды спорта(PK(id), название спорта)
 CREATE TABLE Sports(
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name TEXT NOT NULL UNIQUE
 );
 
@@ -68,12 +71,12 @@ CREATE TYPE SEX as ENUM ('male', 'female', 'not stated');
 CREATE TABLE Sportsman(
   name TEXT NOT NULL, 
   sex SEX NOT NULL DEFAULT 'not stated', 
-  height INT NOT NULL CHECK (height > 0), 
-  weight INT NOT NULL CHECK (weight > 0),
-  age INT NOT NULL CHECK (age > 0), 
-  card_id INT PRIMARY KEY CHECK (card_id <= 1e6),
+  height INT CHECK (height > 0), 
+  weight INT CHECK (weight > 0),
+  age INT CHECK (age > 0), 
+  card_id SERIAL PRIMARY KEY CHECK (card_id < 1e6),
   volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
-  building_id INT NOT NULL REFERENCES Building(id),
+  building_id INT REFERENCES Building(id),
   delegation_id TEXT NOT NULL REFERENCES Delegation(country)
 );
 
@@ -88,7 +91,7 @@ CREATE TABLE Sportsman(
 -- Соревнование по какому-либо виду спорта, проводимое в рамках олимпийских игр
 -- В одно время в одном здании может проводиться только одно соревнование
 CREATE TABLE Competition (
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   sport_id INT NOT NULL,
   competition_date TIMESTAMP(0) NOT NULL,
   building_id INT NOT NULL,
@@ -116,12 +119,14 @@ CREATE TABLE Transport(
 -- За каждым заданием закреплён один волонтёр, у волонтёра может быть несколько заданий 
 -- К заданию может быть прикреплено транспортное средство
 -- Нельзя, чтобы в одно время к одному транспорту относилось несколько заданий 
+-- Нельзя, чтобы в одно время к одному волонтёру относилось несколько заданий 
 CREATE TABLE Task (
-  id INT PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   volunteer_id INT NOT NULL REFERENCES Volunteer(card_id),
   task_date TIMESTAMP NOT NULL,
   transport_id TEXT NULL REFERENCES Transport(reg_n),
   task_description TEXT,
-  UNIQUE (task_date, transport_id)
+  UNIQUE (task_date, transport_id),
+  UNIQUE (task_date, volunteer_id)
 );
  
